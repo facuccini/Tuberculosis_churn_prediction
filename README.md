@@ -15,7 +15,7 @@ Tuberculosis (TB) remains the world's leading cause of death from a single infec
 
 > **Why abandonment matters:**
 > - Incomplete treatment causes **relapse** and worsens disease
-> - Most critically, it drives **drug resistance** — MDR-TB costs ~$150,000 per case vs. $1,000 for drug-sensitive TB
+> - Most critically, it drives **drug resistance** — MDR-TB costs ~150X for drug-sensitive TB
 > - Early identification of at-risk patients enables **preventive intervention** at a fraction of the re-treatment cost
 
 This project builds a **churn prediction pipeline** — adapting a well-known business analytics problem to the public health domain — to identify high-risk patients **at enrollment**, before treatment starts.
@@ -24,7 +24,7 @@ This project builds a **churn prediction pipeline** — adapting a well-known bu
 
 ---
 
-## 🎯 Business Problem → Data Science Solution
+## 🎯 Business Problem → Data Science applied in Clinical Context 
 
 | Business Frame | Technical Frame |
 |---|---|
