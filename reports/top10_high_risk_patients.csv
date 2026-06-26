@@ -1,0 +1,11 @@
+Rank,patient_id,P(Dropout),Risk,Actual (test),Principal Factor
+1,PAT_0007,0.725,HIGH,Completer,accessibility_score > 37.34
+2,PAT_0086,0.717,HIGH,Dropout,accessibility_score > 37.34
+3,PAT_0062,0.708,HIGH,Completer,accessibility_score > 37.34
+4,PAT_0010,0.705,HIGH,Dropout,accessibility_score > 37.34
+5,PAT_0050,0.703,HIGH,Completer,accessibility_score > 37.34
+6,PAT_0013,0.697,MEDIUM,Completer,accessibility_score > 37.34
+7,PAT_0131,0.669,MEDIUM,Dropout,accessibility_score > 37.34
+8,PAT_0025,0.669,MEDIUM,Dropout,accessibility_score > 37.34
+9,PAT_0064,0.656,MEDIUM,Dropout,accessibility_score > 37.34
+10,PAT_0081,0.633,MEDIUM,Completer,accessibility_score > 37.34
