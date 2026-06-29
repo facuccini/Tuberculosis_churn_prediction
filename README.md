@@ -1,11 +1,8 @@
 # 🫁 TB Treatment Churn Prediction: Preventing Treatment Abandonment with ML
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![scikit-learn](https://img.shields.io/badge/ML-scikit--learn-orange.svg)](https://scikit-learn.org/)
-[![Streamlit App](https://img.shields.io/badge/Deploy-Streamlit_Dashboard-FF4B4B.svg)](https://streamlit.io/)
 [![Power BI](https://img.shields.io/badge/BI-Power_BI-F2C811.svg)](https://powerbi.microsoft.com/)
-[![PostgreSQL](https://img.shields.io/badge/DB-PostgreSQL-316192.svg)](https://www.postgresql.org/)
 
 ---
 
@@ -32,7 +29,7 @@ This project builds a **churn prediction pipeline** — adapting a well-known bu
 | "Why is this patient at risk?" | LIME local explanations per patient |
 | "Where should we concentrate resources?" | Regional analysis + feature importance |
 | "How much does early intervention save?" | Cost-sensitive threshold optimization |
-| "How do we present this to program managers?" | Streamlit + Power BI dashboards |
+| "How do we present this to program managers?" | Power BI dashboards |
 
 ---
 
@@ -44,7 +41,7 @@ This project builds a **churn prediction pipeline** — adapting a well-known bu
 | Random Forest | 0.674 | 0.389 | 0.655 ± 0.039 |
 | Gradient Boosting | 0.679 | 0.422 | 0.607 ± 0.041 |
 
-**Top predictors at enrollment:** distance to clinic, patient age, social support type, employment status, region, education level.
+**Top predictors at enrollment:** distance to clinic, patient age, social support type.
 
 **Cost-Sensitive Impact:** Optimizing the classification threshold (FN=$5,000 vs FP=$50) yields estimated savings of **~$475,000 per 1,000 patients** compared to no intervention — translating ML metrics directly into program impact.
 
@@ -83,7 +80,6 @@ This project builds a **churn prediction pipeline** — adapting a well-known bu
 
 ## 🚀 Key Features
 
-- **Relational SQL Schema**: 4-table PostgreSQL design (patients, visits, results, treatments) with analytical views.
 - **Anti-Leakage Feature Engineering**: All features derived exclusively from enrollment data — no visit-derived behavioral features. Temporal validity enforced by design.
 - **3-Model Comparison**: Logistic Regression (baseline), Random Forest, Gradient Boosting — with 5-fold stratified CV.
 - **Cost-Sensitive Learning**: Threshold tuned to asymmetric misclassification costs (FN = $5,000 vs FP = $50).
@@ -249,22 +245,6 @@ jupyter notebook notebooks/01_data_preparation.ipynb
 # 4. Launch Streamlit dashboard
 streamlit run app/dashboard_app.py
 ```
-
-### With PostgreSQL (Production Setup)
-
-```sql
--- 1. Create database
-psql -U postgres -c "CREATE DATABASE tb_program;"
-
--- 2. Create schema
-psql -U postgres -d tb_program -f data/sql/01_schema.sql
-
--- 3. Run analytical views
-psql -U postgres -d tb_program -f data/sql/02_analytical_queries.sql
-```
-
----
-
 ## 🔬 Domain Notes
 
 ### WHO Classification of TB Treatment Outcomes
@@ -286,11 +266,11 @@ This project uses synthetic data calibrated to WHO epidemiological parameters (d
 
 ## 📚 References
 
-1. WHO Global Tuberculosis Report 2023
-2. Alene, K.A., et al. (2024). *Machine learning models for predicting loss to follow-up among TB patients.* Scientific Reports, 14, 23891.
-3. Tola, H.H., et al. (2019). *Psychological and psychosocial factors affecting TB treatment adherence.* PLOS ONE.
-4. Diel, R., et al. (2014). *Financial burden of MDR-TB to public health systems.* Thorax.
-5. Ribeiro, M.T., et al. (2016). *"Why Should I Trust You?": Explaining the Predictions of Any Classifier.* KDD.
+1. WHO Global Tuberculosis Report 2025.
+2. Zhang, F. "Using Machine Learning Methods to Predict Early Treatment Outcomes for Multidrug-Resistant or Rifampicin-Resistant Tuberculosis to Enhance Patient Cure Rates: Development and Validation of Multiple Models".
+3. Wang L. "A multi-stage machine learning framework for stepwise prediction of tuberculosis treatment outcomes: Integrating gradient boosted decision trees and feature-level analysis for clinical decision support".
+4. Chen, J."Predictive machine learning models for anticipating loss to follow-up in tuberculosis patients throughout anti-TB treatment journey".
+
 
 ---
 
@@ -298,43 +278,13 @@ This project uses synthetic data calibrated to WHO epidemiological parameters (d
 
 **Facundo Colaccini, PhD** — Biological Sciences (TB / Drug Discovery) → Data Science
 
-- 🔗 [LinkedIn](https://linkedin.com/in/facuccini)
+- 🔗 [LinkedIn](www.linkedin.com/in/facundo-colaccini)
 - 💻 [GitHub](https://github.com/facuccini)
 - 🔬 [See also: Project A — FasR Drug Discovery Pipeline](../fasr-drug-discovery/)
 
-*Part of a portfolio demonstrating domain expertise in TB biology combined with applied ML, SQL, explainability, and BI tools for real-world public health impact.*
-
 ---
 
-## 🔍 Final Considerations
 
-This section documents methodological improvements implemented in response to expert-level critique, and outstanding limitations that future work should address. It is intended to demonstrate critical awareness of the project's scope and rigor — a quality expected in peer-reviewed publication and in applied ML roles.
-
-### What was implemented
-
-**1. Model calibration (Brier score + Hosmer-Lemeshow test)**
-The initial logistic regression was miscalibrated (H-L p=0.000), meaning that even with reasonable discrimination (AUC=0.70), the predicted probabilities did not reliably reflect true risk. Isotonic calibration (post-hoc) improved the Brier score from 0.203 to 0.143 and yielded H-L p=0.756 — well calibrated. This distinction matters clinically: a miscalibrated model that predicts "40% risk" when the true rate is 15% would lead to systematic over-intervention. Random Forest remained moderately miscalibrated (H-L p=0.011), supporting the choice of calibrated LR as the deployed model.
-
-**2. Cost sensitivity analysis across LMIC and HIC parameter spaces**
-The original analysis used a single FN=$5,000 / FP=$50 scenario derived from UK/US cost estimates. This was replaced with a full sensitivity grid (FN: $500–$15,000 × FP: $5–$200). Key finding: even at LMIC cost levels (FN=$1,000, FP=$5), the model generates meaningful savings (~$60K–$100K per 1,000 patients). The optimal threshold shifts dramatically between settings — from ~0.20 in LMIC programs (aggressive screening, where CHW visits cost almost nothing) to ~0.45 in HIC programs. A deployment guide should specify cost parameters before any threshold recommendation.
-
-**3. Composite accessibility score (Horter et al., 2020; Datiko et al., 2022)**
-A new feature `accessibility_score = distance_km × DOT_penalty × support_factor` was added to capture structural access barriers beyond linear distance. A patient 30 km away with in-person DOT and a Community Health Worker has meaningfully better access than one 15 km away with self-administered therapy and no support — the linear distance feature misses this. This feature ranks in the top-5 predictors in the Random Forest model.
-
-**4. Synthetic cross-cohort external validation**
-A second synthetic cohort was generated using Sub-Saharan Africa-calibrated epidemiological parameters (HIV prevalence 25% vs. 13%, average distance 40 km vs. 22 km, higher CHW coverage). The model trained on the original cohort was applied without retraining. AUC dropped from 0.706 to 0.604 — a 14.4% relative decline. This is consistent with the transportability literature (Kigozi et al., 2023: observed AUC drops of 8–18% across settings). It demonstrates that models trained in one health-system context require local recalibration before deployment in another — an essential caveat for any real-world TB program implementation.
-
-### What remains outstanding
-
-**Real patient-level data.** The synthetic dataset was generated from WHO-calibrated parameters and serves as a methodological proof-of-concept. All findings are inherently circular to the extent that the generator's assumptions are reflected in the model's discoveries. Validation on real cohorts requires a Data Use Agreement. Two accessible pathways: (1) **TB Portals (NIAID)** — multinational MDR/XDR-TB cohort, DUA process takes ~4–8 weeks, open to researchers with institutional affiliation; (2) **WHO TB-IPD (UCL/WHO)** — 36,000 individual patient records from 18 countries, DUA available through [who.int/teams/global-tb-programme/data](https://www.who.int/teams/global-tb-programme/data). Neither dataset requires a fee.
-
-**True external validation.** The cross-cohort analysis above uses a second synthetic population — it demonstrates methodological awareness, not real generalizability. Real external validation requires applying the model to a prospectively-collected cohort from a different country or health system without any model adjustment. This is the standard required for publication in *Lancet Infectious Diseases*, *Clinical Infectious Diseases*, or *PLOS Medicine*.
-
-**Structural variables not captured.** The model lacks features consistently identified as high-impact in the SSA and South Asian literature: (a) **actual transport cost and time** to the treatment center (not just Euclidean distance in km); (b) **food security status** and whether the patient receives nutritional support during treatment — consistently predictive in Ethiopian and Ugandan cohorts (Datiko et al., 2022; Horter et al., 2020); (c) **household TB exposure** beyond a simple contact count (e.g., whether another household member is currently on treatment). Incorporating these would require structured intake data beyond what most TB registries currently collect.
-
-**Decision Curve Analysis (DCA).** The cost-sensitivity heatmap addresses the most obvious limitation of single-threshold cost analysis, but Decision Curve Analysis (Vickers & Elkin, 2006) is increasingly required by clinical epidemiology reviewers. DCA plots net benefit across the full threshold range without requiring explicit cost parameters — making results comparable across settings with unknown cost structures. This is a two-hour addition to the analysis and would be required for any submission to a clinical journal.
-
----
 ---
 
 # 🫁 Predicción de Abandono de Tratamiento TB con ML
@@ -378,8 +328,7 @@ Este proyecto construye un **pipeline de predicción de churn** — adaptando un
 | Random Forest | 0.674 | 0.389 | 0.655 ± 0.039 |
 | Gradient Boosting | 0.679 | 0.422 | 0.607 ± 0.041 |
 
-**Predictores principales al momento de la inscripción:** distancia al centro, edad del paciente, tipo de apoyo social, situación laboral, región, nivel educativo.
-
+**Predictores principales al momento de la inscripción:** distancia al centro, edad del paciente, tipo de apoyo social.
 **Impacto Costo-Sensible:** Optimizando el umbral de clasificación (FN=$5.000 vs FP=$50), se estiman ahorros de **~$475.000 por cada 1.000 pacientes** respecto a no intervenir.
 
 ---
@@ -426,49 +375,20 @@ El dashboard Power BI conecta directamente con la capa de datos procesados. Tres
 
 ## 📚 Referencias
 
-1. OMS. Informe Global sobre Tuberculosis 2023.
-2. Alene, K.A., et al. (2024). *Machine learning models for predicting loss to follow-up among TB patients.* Scientific Reports, 14, 23891.
-3. Tola, H.H., et al. (2019). *Factores psicosociales y adherencia al tratamiento TB.* PLOS ONE.
-4. Ribeiro, M.T., et al. (2016). *"Why Should I Trust You?": Explaining the Predictions of Any Classifier.* KDD.
+1. OMS Reporte Global de Tuberculosis 2025.
+2. Zhang, F. "Using Machine Learning Methods to Predict Early Treatment Outcomes for Multidrug-Resistant or Rifampicin-Resistant Tuberculosis to Enhance Patient Cure Rates: Development and Validation of Multiple Models".
+3. Wang L. "A multi-stage machine learning framework for stepwise prediction of tuberculosis treatment outcomes: Integrating gradient boosted decision trees and feature-level analysis for clinical decision support".
+4. Chen, J."Predictive machine learning models for anticipating loss to follow-up in tuberculosis patients throughout anti-TB treatment journey".
 
 ---
 
-## 👤 Sobre el Autor
+## 👤 Autor
 
 **Facundo Colaccini, PhD** — Ciencias Biológicas (TB / Drug Discovery) → Data Science
 
-- 🔗 [LinkedIn](https://linkedin.com/in/facuccini)
+- 🔗 [LinkedIn](www.linkedin.com/in/facundo-colaccini)
 - 💻 [GitHub](https://github.com/facuccini)
 - 🔬 [Ver también: Proyecto A — FasR Drug Discovery Pipeline](../fasr-drug-discovery/)
 
-*Parte de un portfolio que demuestra expertise en biología TB combinado con ML aplicado, SQL, explicabilidad e inteligencia de negocios para impacto real en salud pública.*
 
----
 
-## 🔍 Consideraciones Finales
-
-Esta sección documenta las mejoras metodológicas implementadas en respuesta a críticas de nivel experto, y las limitaciones pendientes que trabajo futuro debería abordar. Está diseñada para demostrar conciencia crítica sobre el alcance y el rigor del proyecto — una calidad esperada en publicación revisada por pares y en roles de ML aplicado.
-
-### Lo que se implementó
-
-**1. Calibración del modelo (Brier score + test Hosmer-Lemeshow)**
-La regresión logística inicial estaba mal calibrada (H-L p=0.000): aunque discriminaba razonablemente (AUC=0.70), las probabilidades predichas no reflejaban el riesgo verdadero. La calibración isotónica post-hoc mejoró el Brier score de 0.203 a 0.143 y arrojó H-L p=0.756 — bien calibrado. Esta distinción importa clínicamente: un modelo que predice "40% de riesgo" cuando la tasa real es 15% llevaría a sobre-intervención sistemática. El Random Forest permaneció moderadamente mal calibrado (H-L p=0.011), lo que respalda la elección del LR calibrado como modelo de despliegue.
-
-**2. Análisis de sensibilidad de costos entre contextos LMIC y HIC**
-El análisis original usaba un único escenario FN=$5.000/FP=$50 derivado de estimaciones del NHS/CDC. Fue reemplazado por una grilla completa (FN: $500–$15.000 × FP: $5–$200). Hallazgo clave: incluso a costos LMIC (FN=$1.000, FP=$5), el modelo genera ahorros significativos (~$60K–$100K por cada 1.000 pacientes). El umbral óptimo varía dramáticamente entre contextos: ~0.20 en programas LMIC (screening agresivo, donde las visitas de ACS cuestan casi nada) a ~0.45 en contextos HIC. Una guía de despliegue debe especificar los parámetros de costo antes de cualquier recomendación de umbral.
-
-**3. Score de accesibilidad compuesto (Horter et al., 2020; Datiko et al., 2022)**
-Se agregó la feature `accessibility_score = distance_km × penalización_DOT × factor_soporte` para capturar barreras de acceso estructural más allá de la distancia lineal. Un paciente a 30 km con DOT presencial y un ACS comunitario tiene acceso real muy superior al de uno a 15 km con terapia auto-administrada y sin soporte. Esta feature se ubica entre los top-5 predictores en el Random Forest.
-
-**4. Validación externa sintética cross-cohort**
-Se generó una segunda cohorte sintética con parámetros epidemiológicos de África Subsahariana (prevalencia de VIH 25% vs. 13%, distancia promedio 40 km vs. 22 km). El modelo entrenado en la cohorte original se aplicó sin reentrenar. El AUC cayó de 0.706 a 0.604 — una caída relativa del 14.4%, consistente con la literatura de transportabilidad (Kigozi et al., 2023: caídas observadas del 8–18% entre contextos). Esto demuestra que los modelos entrenados en un sistema de salud requieren recalibración local antes de desplegarse en otro — una advertencia esencial para cualquier implementación en programas TB reales.
-
-### Lo que permanece pendiente
-
-**Datos reales de pacientes.** El dataset sintético fue generado a partir de parámetros calibrados con la OMS y sirve como proof-of-concept metodológico. Todos los hallazgos son inherentemente circulares en la medida en que los supuestos del generador se reflejan en los descubrimientos del modelo. La validación sobre cohortes reales requiere un Data Use Agreement. Dos vías accesibles: (1) **TB Portals (NIAID)** — cohorte multinacional de TB-MDR/XDR, proceso DUA de ~4–8 semanas; (2) **WHO TB-IPD (UCL/WHO)** — 36.000 registros individuales de 18 países, DUA disponible en who.int. Ningún dataset requiere pago.
-
-**Validación externa real.** El análisis cross-cohort anterior usa una segunda población sintética — demuestra conciencia metodológica, no generalizabilidad real. La validación externa verdadera requiere aplicar el modelo a una cohorte prospectiva de un país o sistema de salud diferente, sin ajuste del modelo. Es el estándar requerido para publicación en *Lancet Infectious Diseases*, *Clinical Infectious Diseases* o *PLOS Medicine*.
-
-**Variables estructurales no capturadas.** El modelo carece de features consistentemente identificadas como de alto impacto en la literatura de África Subsahariana y Asia del Sur: (a) **costo y tiempo de transporte reales** al centro de tratamiento (no solo distancia euclidiana en km); (b) **seguridad alimentaria** y si el paciente recibe apoyo nutricional durante el tratamiento — consistentemente predictivo en cohortes etíopes y ugandesas (Datiko et al., 2022); (c) **exposición domiciliaria a TB** más allá de un conteo simple de contactos.
-
-**Decision Curve Analysis (DCA).** El mapa de calor de sensibilidad de costos aborda la limitación más obvia, pero el DCA (Vickers & Elkin, 2006) es cada vez más requerido por revisores de epidemiología clínica. Grafica el beneficio neto a través del rango completo de umbrales sin requerir parámetros de costo explícitos — haciendo los resultados comparables entre contextos con estructuras de costo desconocidas. Es una adición de ~2 horas al análisis y sería requerida para cualquier envío a revista clínica.
